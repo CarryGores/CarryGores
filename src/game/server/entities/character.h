@@ -249,6 +249,11 @@ public:
 	bool IsSuper() { return m_Core.m_Super; }
 
 	CSaveTee &GetRescueTeeRef() { return m_RescueTee; }
+
+	// carry sim
+
+	bool m_TouchedFreeze;
+	int64_t m_HelpedSince;
 };
 
 enum

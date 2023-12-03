@@ -1145,6 +1145,7 @@ int CServer::NewClientNoAuthCallback(int ClientID, void *pUser)
 int CServer::NewClientCallback(int ClientID, void *pUser, bool Sixup)
 {
 	CServer *pThis = (CServer *)pUser;
+	pThis->m_aClients[ClientID].m_IsBot = false; // carry sim
 	pThis->m_aClients[ClientID].m_State = CClient::STATE_PREAUTH;
 	pThis->m_aClients[ClientID].m_DnsblState = CClient::DNSBL_STATE_NONE;
 	pThis->m_aClients[ClientID].m_aName[0] = 0;
@@ -2643,7 +2644,6 @@ int CServer::LoadMap(const char *pMapName)
 	return 1;
 }
 
-#ifdef CONF_DEBUG
 void CServer::UpdateDebugDummies(bool ForceDisconnect)
 {
 	if(m_PreviousDebugDummies == g_Config.m_DbgDummies && !ForceDisconnect)
@@ -2659,6 +2659,7 @@ void CServer::UpdateDebugDummies(bool ForceDisconnect)
 			m_aClients[ClientID].m_DebugDummy = true;
 			GameServer()->OnClientConnected(ClientID, nullptr);
 			m_aClients[ClientID].m_State = CClient::STATE_INGAME;
+			m_aClients[ClientID].m_IsBot = true; // carry sim
 			str_format(m_aClients[ClientID].m_aName, sizeof(m_aClients[ClientID].m_aName), "Debug dummy %d", DummyIndex + 1);
 			GameServer()->OnClientEnter(ClientID);
 		}
@@ -2680,7 +2681,6 @@ void CServer::UpdateDebugDummies(bool ForceDisconnect)
 
 	m_PreviousDebugDummies = ForceDisconnect ? 0 : g_Config.m_DbgDummies;
 }
-#endif
 
 int CServer::Run()
 {
@@ -2829,9 +2829,7 @@ int CServer::Run()
 						}
 					}
 
-#ifdef CONF_DEBUG
 					UpdateDebugDummies(true);
-#endif
 					GameServer()->OnShutdown(m_pPersistentData);
 
 					for(int ClientID = 0; ClientID < MAX_CLIENTS; ClientID++)
@@ -2921,9 +2919,7 @@ int CServer::Run()
 			{
 				GameServer()->OnPreTickTeehistorian();
 
-#ifdef CONF_DEBUG
 				UpdateDebugDummies(false);
-#endif
 
 				for(int c = 0; c < MAX_CLIENTS; c++)
 				{

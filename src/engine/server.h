@@ -239,6 +239,12 @@ public:
 
 	virtual void DemoRecorder_HandleAutoStart() = 0;
 
+	// carry sim
+
+	virtual bool IsBot(int ClientID) = 0;
+	virtual void SetInput(int ClientID, const CNetObj_PlayerInput *pInp) = 0;
+	virtual CNetObj_PlayerInput *GetInput(int ClientID) = 0;
+
 	// DDRace
 
 	virtual void SaveDemo(int ClientID, float Time) = 0;

@@ -122,10 +122,8 @@ class CServer : public IServer
 
 	class CDbConnectionPool *m_pConnectionPool;
 
-#ifdef CONF_DEBUG
 	int m_PreviousDebugDummies = 0;
 	void UpdateDebugDummies(bool ForceDisconnect);
-#endif
 
 public:
 	class IGameServer *GameServer() { return m_pGameServer; }
@@ -226,6 +224,9 @@ public:
 		{
 			return m_State != STATE_EMPTY && !m_DebugDummy;
 		}
+
+		// carry sim
+		bool m_IsBot;
 	};
 
 	CClient m_aClients[MAX_CLIENTS];
@@ -460,6 +461,24 @@ public:
 	void SnapFreeID(int ID) override;
 	void *SnapNewItem(int Type, int ID, int Size) override;
 	void SnapSetStaticsize(int ItemType, int Size) override;
+
+	// carry sim
+
+	bool IsBot(int ClientID) override
+	{
+		return m_aClients[ClientID].m_IsBot;
+	}
+	void SetInput(int ClientID, const CNetObj_PlayerInput *pInp) override
+	{
+		m_aClients[ClientID].m_aInputs[0].m_GameTick = Tick() + 1;
+		mem_copy(m_aClients[ClientID].m_aInputs[0].m_aData, pInp, minimum(sizeof(CNetObj_PlayerInput), sizeof(m_aClients[ClientID].m_aInputs[0].m_aData)));
+		m_aClients[ClientID].m_LatestInput = m_aClients[ClientID].m_aInputs[0];
+		m_aClients[ClientID].m_CurrentInput = 0;
+	}
+	CNetObj_PlayerInput *GetInput(int ClientID) override
+	{
+		return (CNetObj_PlayerInput *)m_aClients[ClientID].m_aInputs[0].m_aData;
+	}
 
 	// DDRace
 
