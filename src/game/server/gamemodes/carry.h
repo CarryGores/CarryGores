@@ -20,6 +20,27 @@ public:
 	};
 
 	void ColorBody(class CPlayer *pPlayer, EColor Color);
+	/*
+		Function: GetSpawnTarget
+			Picks a target player to spawn the dummy next to
+
+		Returns:
+			ClientID of target to spawn next to
+			or -1 on error
+	*/
+	int GetSpawnTarget();
+	/*
+		Function: GetClosestFreeTile
+			Picks a spawn position close to the given pos
+			valid spawn positions are air and freeze
+
+		Returns:
+			vec2 with the valid spawn pos
+			returns vec2(-1, -1) or error
+	*/
+	vec2 GetClosestFreeTile(vec2 Pos);
+	vec2 GetFirstNonIntersectOrPushIntersect(std::vector<vec2> &ClosestFreeTile, vec2 Pos, int Start, int Max);
+	bool IsValidSpawnPos(vec2 Pos);
 
 	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void Tick() override;

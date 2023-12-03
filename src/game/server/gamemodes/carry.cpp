@@ -1,3 +1,4 @@
+#include <game/mapitems.h>
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
 
@@ -78,6 +79,76 @@ void CGameControllerCarry::OnCharacterTick(CCharacter *pChr)
 		OnBotCharacterTick(pChr);
 }
 
+int CGameControllerCarry::GetSpawnTarget()
+{
+	int Target = -1;
+	for(const CPlayer *pPlayer : GameServer()->m_apPlayers)
+	{
+		if(!pPlayer)
+			continue;
+		if(!pPlayer->GetCharacter())
+			continue;
+
+		// TODO: actually rotate players
+		//       or even load balance who has the least tees around
+		Target = pPlayer->GetCID();
+		break;
+	}
+	return Target;
+}
+
+bool CGameControllerCarry::IsValidSpawnPos(vec2 Pos)
+{
+	int Game = GameServer()->Collision()->GetCollisionAt(Pos.x, Pos.y);
+	int Front = GameServer()->Collision()->GetFCollisionAt(Pos.x, Pos.y);
+	return (Game == TILE_AIR || Game == TILE_FREEZE) &&
+	       (Front == TILE_AIR || Front == TILE_FREEZE);
+}
+
+vec2 CGameControllerCarry::GetFirstNonIntersectOrPushIntersect(std::vector<vec2> &ClosestFreeTile, vec2 Pos, int Start, int Max)
+{
+	for(int X = -Start; X < Max; X++)
+	{
+		for(int Y = -Start; Y < Max; Y++)
+		{
+			vec2 Check = vec2(Pos.x + X * 32, Pos.y + Y * 32);
+			if(IsValidSpawnPos(Check))
+			{
+				ClosestFreeTile.emplace_back(Check);
+				int _UnusedTeleNr;
+				// vec2 WHERE;
+				int Hit = GameServer()->Collision()->IntersectLineTeleHook(Pos, Check, 0x0, 0x0, &_UnusedTeleNr);
+				// dbg_msg("carry", "hit=%d x=%d y=%d", Hit, (int)(Check.x / 32), (int)(Check.y / 32));
+				// if(Hit)
+				// 	dbg_msg("carry", "  at x=%d y=%d", (int)(WHERE.x / 32), (int)(WHERE.y / 32));
+				if(!Hit)
+				{
+					dbg_msg("carry", "we do not intersect at %.2f %.2f", Check.x, Check.y);
+					// ClosestFreeTileNonIntersect.emplace_back(Check);
+					return Check;
+				}
+			}
+		}
+	}
+	return vec2(-1, -1);
+}
+
+vec2 CGameControllerCarry::GetClosestFreeTile(vec2 Pos)
+{
+	std::vector<vec2> ClosestFreeTile;
+	const int Radius = 20;
+
+	vec2 Candidate = GetFirstNonIntersectOrPushIntersect(ClosestFreeTile, Pos, rand() % Radius, Radius);
+	if(Candidate != vec2(-1, -1))
+		return Candidate;
+	Candidate = GetFirstNonIntersectOrPushIntersect(ClosestFreeTile, Pos, Radius, Radius);
+	if(Candidate != vec2(-1, -1))
+		return Candidate;
+
+	dbg_msg("carry", "fallback to random intersect. Num options: %ld", ClosestFreeTile.size());
+	return ClosestFreeTile.empty() ? vec2(-1, -1) : ClosestFreeTile[rand() % ClosestFreeTile.size()];
+}
+
 void CGameControllerCarry::OnCharacterSpawn(class CCharacter *pChr)
 {
 	IGameController::OnCharacterSpawn(pChr);
@@ -89,6 +160,24 @@ void CGameControllerCarry::OnCharacterSpawn(class CCharacter *pChr)
 		ColorBody(pChr->GetPlayer(), COLOR_BLACK);
 		pChr->m_TouchedFreeze = false;
 		pChr->m_HelpedSince = 0;
+
+		int Target = GetSpawnTarget();
+		if(Target != -1)
+		{
+			CPlayer *pTarget = GameServer()->m_apPlayers[Target];
+			if(pTarget->GetCharacter())
+			{
+				vec2 TeeCenter = pTarget->GetCharacter()->Core()->m_Pos;
+				TeeCenter.x = round_truncate(TeeCenter.x / 32) * 32 + 16;
+				TeeCenter.y = round_truncate(TeeCenter.y / 32) * 32 + 16;
+				vec2 SpawnPos = GetClosestFreeTile(TeeCenter);
+				if(SpawnPos != vec2(-1, -1))
+				{
+					dbg_msg("carry", "spawn %.2f %.2f", SpawnPos.x, SpawnPos.y);
+					pChr->Core()->m_Pos = SpawnPos;
+				}
+			}
+		}
 	}
 }
 
