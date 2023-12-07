@@ -39,6 +39,22 @@ void CGameControllerCarry::ColorBody(CPlayer *pPlayer, EColor Color)
 	pPlayer->m_TeeInfos.m_UseCustomColor = true;
 }
 
+CGameControllerCarry::CCarryPlayer::CCarryPlayer()
+{
+	Reset();
+}
+
+void CGameControllerCarry::CCarryPlayer::Reset()
+{
+	m_LastToucherID = -1;
+	m_NumHelps = 0;
+}
+
+void CGameControllerCarry::CCarryPlayer::UpdateLastToucher(int ID)
+{
+	m_LastToucherID = ID;
+}
+
 void CGameControllerCarry::OnBotCharacterTick(CCharacter *pChr)
 {
 	if(pChr->m_FreezeTime)
@@ -63,7 +79,11 @@ void CGameControllerCarry::OnBotCharacterTick(CCharacter *pChr)
 		const int64_t MinUnfreeze = 0.4 * time_freq();
 		// dbg_msg("carry", "unfrozen since %ld diff to min %ld", UnforzenSince, UnforzenSince - MinUnfreeze);
 		if(UnforzenSince > MinUnfreeze)
+		{
 			pChr->Die(pChr->GetPlayer()->GetCID(), WEAPON_SELF);
+			CCarryPlayer &Helper = m_aCarryPlayer[pChr->GetPlayer()->GetCID()];
+			Helper.AddHelp();
+		}
 	}
 	else if(pChr->m_HelpedSince)
 	{
@@ -147,6 +167,18 @@ vec2 CGameControllerCarry::GetClosestFreeTile(vec2 Pos)
 
 	dbg_msg("carry", "fallback to random intersect. Num options: %ld", ClosestFreeTile.size());
 	return ClosestFreeTile.empty() ? vec2(-1, -1) : ClosestFreeTile[rand() % ClosestFreeTile.size()];
+}
+
+void CGameControllerCarry::OnPlayerConnect(class CPlayer *pPlayer)
+{
+	CCarryPlayer &CarryPlayer = m_aCarryPlayer[pPlayer->GetCID()];
+	CarryPlayer.Reset();
+}
+
+void CGameControllerCarry::OnPlayerDisconnect(class CPlayer *pPlayer, const char *pReason)
+{
+	CCarryPlayer &CarryPlayer = m_aCarryPlayer[pPlayer->GetCID()];
+	CarryPlayer.Reset();
 }
 
 void CGameControllerCarry::OnCharacterSpawn(class CCharacter *pChr)

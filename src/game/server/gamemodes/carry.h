@@ -12,6 +12,27 @@ public:
 	void OnBotCharacterTick(class CCharacter *pChr);
 	void OnCharacterTick(class CCharacter *pChr);
 
+	/*
+		mimics the CPlayer class
+		and allows us to store a per player state
+		without patching player.h to avoid conflicts
+	*/
+	class CCarryPlayer
+	{
+	public:
+		CCarryPlayer();
+		void Reset();
+		void UpdateLastToucher(int ID);
+		int LastToucherID() { return m_LastToucherID; }
+		int Score() { return m_NumHelps; }
+		void AddHelp() { m_NumHelps++; }
+
+	private:
+		int m_LastToucherID;
+		int m_NumHelps;
+	};
+	CCarryPlayer m_aCarryPlayer[MAX_CLIENTS];
+
 	enum EColor
 	{
 		COLOR_BLACK,
@@ -44,5 +65,7 @@ public:
 
 	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void Tick() override;
+	void OnPlayerConnect(class CPlayer *pPlayer) override;
+	void OnPlayerDisconnect(class CPlayer *pPlayer, const char *pReason) override;
 };
 #endif // GAME_SERVER_GAMEMODES_CARRY_H

@@ -349,6 +349,9 @@ void CPlayer::Snap(int SnappingClient)
 	if(SnappingClient != m_ClientID && g_Config.m_SvHideScore)
 		Score = -9999;
 
+	// carry sim
+	// Score =
+
 	if(!Server()->IsSixup(SnappingClient))
 	{
 		CNetObj_PlayerInfo *pPlayerInfo = Server()->SnapNewItem<CNetObj_PlayerInfo>(id);
