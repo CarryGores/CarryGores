@@ -78,6 +78,17 @@ public:
 
 	// event
 	/*
+		Function: OnCharacterTakeDamage
+			this function was added in ddnet-insta and is a non standard controller method.
+			neither ddnet nor teeworlds have this
+
+		Returns:
+			return true to skip ddnet CCharacter::TakeDamage() behavior
+			which is applying the force and moving the damaged tee
+			it also sets the happy eyes if the Dmg is not zero
+	*/
+	virtual bool OnCharacterTakeDamage(vec2 &Force, int &Dmg, int &From, int &Weapon, CCharacter &Character) { return false; };
+	/*
 		Function: OnCharacterDeath
 			Called when a CCharacter in the world dies.
 
