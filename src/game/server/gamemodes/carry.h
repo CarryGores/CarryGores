@@ -62,6 +62,8 @@ public:
 	vec2 GetClosestFreeTile(vec2 Pos);
 	vec2 GetFirstNonIntersectOrPushIntersect(std::vector<vec2> &ClosestFreeTile, vec2 Pos, int Start, int Max);
 	bool IsValidSpawnPos(vec2 Pos);
+	int OnSnapPlayerScore(class CPlayer *pPlayer, int SnappingClient) override;
+
 
 	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void Tick() override;

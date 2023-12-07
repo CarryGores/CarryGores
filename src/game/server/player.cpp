@@ -350,7 +350,7 @@ void CPlayer::Snap(int SnappingClient)
 		Score = -9999;
 
 	// carry sim
-	// Score =
+	Score = GameServer()->m_pController->OnSnapPlayerScore(this, SnappingClient);
 
 	if(!Server()->IsSixup(SnappingClient))
 	{

@@ -10,7 +10,7 @@
 #define GAME_TYPE_NAME "carry"
 #define TEST_TYPE_NAME "test-carry"
 
-CGameControllerCarry::CGameControllerCarry(class CGameContext *pGameServer) :
+CGameControllerCarry::CGameControllerCarry(CGameContext *pGameServer) :
 	IGameController(pGameServer)
 {
 	m_pGameType = g_Config.m_SvTestingCommands ? TEST_TYPE_NAME : GAME_TYPE_NAME;
@@ -19,6 +19,12 @@ CGameControllerCarry::CGameControllerCarry(class CGameContext *pGameServer) :
 }
 
 CGameControllerCarry::~CGameControllerCarry() = default;
+
+int CGameControllerCarry::OnSnapPlayerScore(CPlayer *pPlayer, int SnappingClient)
+{
+	CCarryPlayer &Helper = m_aCarryPlayer[pPlayer->GetCID()];
+	return Helper.Score();
+}
 
 void CGameControllerCarry::ColorBody(CPlayer *pPlayer, EColor Color)
 {
@@ -81,7 +87,8 @@ void CGameControllerCarry::OnBotCharacterTick(CCharacter *pChr)
 		if(UnforzenSince > MinUnfreeze)
 		{
 			pChr->Die(pChr->GetPlayer()->GetCID(), WEAPON_SELF);
-			CCarryPlayer &Helper = m_aCarryPlayer[pChr->GetPlayer()->GetCID()];
+			CCarryPlayer &Bot = m_aCarryPlayer[pChr->GetPlayer()->GetCID()];
+			CCarryPlayer &Helper = m_aCarryPlayer[Bot.LastToucherID()];
 			Helper.AddHelp();
 		}
 	}
