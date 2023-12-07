@@ -69,5 +69,6 @@ public:
 	void Tick() override;
 	void OnPlayerConnect(class CPlayer *pPlayer) override;
 	void OnPlayerDisconnect(class CPlayer *pPlayer, const char *pReason) override;
+	bool OnCharacterTakeDamage(vec2 &Force, int &Dmg, int &From, int &Weapon, CCharacter &Character) override;
 };
 #endif // GAME_SERVER_GAMEMODES_CARRY_H

@@ -61,6 +61,13 @@ void CGameControllerCarry::CCarryPlayer::UpdateLastToucher(int ID)
 	m_LastToucherID = ID;
 }
 
+bool CGameControllerCarry::OnCharacterTakeDamage(vec2 &Force, int &Dmg, int &From, int &Weapon, CCharacter &Character)
+{
+	CCarryPlayer &TouchedPlayer = m_aCarryPlayer[From];
+	TouchedPlayer.UpdateLastToucher(From);
+	return false;
+}
+
 void CGameControllerCarry::OnBotCharacterTick(CCharacter *pChr)
 {
 	if(pChr->m_FreezeTime)
@@ -87,9 +94,13 @@ void CGameControllerCarry::OnBotCharacterTick(CCharacter *pChr)
 		if(UnforzenSince > MinUnfreeze)
 		{
 			pChr->Die(pChr->GetPlayer()->GetCID(), WEAPON_SELF);
-			CCarryPlayer &Bot = m_aCarryPlayer[pChr->GetPlayer()->GetCID()];
-			CCarryPlayer &Helper = m_aCarryPlayer[Bot.LastToucherID()];
-			Helper.AddHelp();
+			int LastToucherID = m_aCarryPlayer[pChr->GetPlayer()->GetCID()].LastToucherID();
+			dbg_msg("carry", "lasttoucherid=%d", LastToucherID);
+			if(LastToucherID != -1)
+			{
+				CCarryPlayer &Helper = m_aCarryPlayer[LastToucherID];
+				Helper.AddHelp();
+			}
 		}
 	}
 	else if(pChr->m_HelpedSince)
